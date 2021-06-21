@@ -1,6 +1,7 @@
 package main
 
 import (
+	"./config"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -8,23 +9,18 @@ import (
 	"github.com/joho/godotenv"
 	"log"
 	"net/http"
-	"os"
 )
 
 func init() {
-	// loads values from .env into the system
 	if err := godotenv.Load(); err != nil {
 		log.Print("No .env file found")
 	}
 }
 
 func main() {
-	telegramToken, exists := os.LookupEnv("TELEGRAM_TOKEN")
-	url, existsUrl := os.LookupEnv("URL")
-	if !exists || !existsUrl {
-		return
-	}
-	bot, err := tgbotapi.NewBotAPI(telegramToken)
+	conf := config.New()
+
+	bot, err := tgbotapi.NewBotAPI(conf.BotConfig.TelegramToken)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -46,7 +42,7 @@ func main() {
 
 		body, err := json.Marshal(map[string]interface{}{})
 
-		resp, err := http.Post(url, "application/json", bytes.NewBuffer(body))
+		resp, err := http.Post(conf.BotConfig.Url, "application/json", bytes.NewBuffer(body))
 
 		if err != nil {
 			log.Fatalln(err)
@@ -59,6 +55,9 @@ func main() {
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.From.FirstName+" "+update.Message.From.LastName+"! "+result["compliment"]["compliment"])
 		msg.ReplyToMessageID = update.Message.MessageID
 
+		msgReport := tgbotapi.NewMessage(conf.BotConfig.ReportChatId, update.Message.From.FirstName+" "+update.Message.From.LastName+" used bot")
+
 		bot.Send(msg)
+		bot.Send(msgReport)
 	}
 }

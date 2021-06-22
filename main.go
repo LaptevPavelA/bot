@@ -52,10 +52,12 @@ func main() {
 
 		json.NewDecoder(resp.Body).Decode(&result)
 
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.From.FirstName+" "+update.Message.From.LastName+"! "+result["compliment"]["compliment"])
+		msgText := update.Message.From.FirstName + " " + update.Message.From.LastName + "! " + result["compliment"]["compliment"]
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, msgText)
 		msg.ReplyToMessageID = update.Message.MessageID
 
-		msgReport := tgbotapi.NewMessage(conf.BotConfig.ReportChatId, update.Message.From.FirstName+" "+update.Message.From.LastName+" used bot")
+		msgReportText := update.Message.From.FirstName + " " + update.Message.From.LastName + " used bot" + ": " + update.Message.Text
+		msgReport := tgbotapi.NewMessage(conf.BotConfig.ReportChatId, msgReportText)
 
 		bot.Send(msg)
 		bot.Send(msgReport)
